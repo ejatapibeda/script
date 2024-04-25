@@ -370,6 +370,7 @@ PetTab:AddTextbox({
     Name = "Pet Name 🐾",
     Default = "",
     Callback = function(Value)
+        print("Pet Name: " .. Value)
     end
 })
 
@@ -408,6 +409,7 @@ GemsTab:AddTextbox({
     Name = "Gems Ammount 💎",
     Default = "",
     Callback = function(Value)
+        print("Gems Type: " .. Value)
     end
 })
 
@@ -446,6 +448,7 @@ ItemTab:AddTextbox({
     Name = "Item Name 🎁",
     Default = "",
     Callback = function(Value)
+        print("Gems Type: " .. Value)
     end
 })
 
