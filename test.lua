@@ -85,13 +85,13 @@ end
 -- Function to teleport to Mecha Boss
 local function teleportToMechaBoss()
     local player = game.Players.LocalPlayer
-    local bossPosition = Vector3.new(477.17, 290.60, 1199.48)  -- Keeping the higher Y coordinate
+    local bossPosition = Vector3.new(483.05, 333.55, 1222.51)  -- Keeping the higher Y coordinate
     
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         -- Create a platform for the player to stand on
         local bossPart = Instance.new("Part")
-        bossPart.Size = Vector3.new(11, 1, 11)  -- Adjusted size to be more like a platform
-        bossPart.Position = bossPosition + Vector3.new(0, -3, 0)  -- Positioned below the player
+        bossPart.Size = Vector3.new(11, 11, 11)  -- Adjusted size to be more like a platform
+        bossPart.Position = bossPosition + Vector3.new(0, -7, 0)  -- Positioned below the player
         bossPart.Anchored = true
         bossPart.CanCollide = true
         bossPart.Transparency = 0.5  -- Semi-transparent
