@@ -85,17 +85,17 @@ end
 -- Function to teleport to Mecha Boss
 local function teleportToMechaBoss()
     local player = game.Players.LocalPlayer
-    local bossPosition = Vector3.new(477.17, 290.60, 1199.48)  -- Increased Y coordinate
+    local bossPosition = Vector3.new(477.17, 290.60, 1199.48)  -- Keeping the higher Y coordinate
     
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Create a temporary block to stand on
-        local tempBlock = Instance.new("Part")
-        tempBlock.Size = Vector3.new(10, 1, 10)  -- Adjust size as needed
-        tempBlock.Position = bossPosition + Vector3.new(0, -3, 0)  -- Place it slightly below the teleport point
-        tempBlock.Anchored = true
-        tempBlock.CanCollide = true
-        tempBlock.Transparency = 0.5  -- Make it semi-transparent
-        tempBlock.Parent = workspace
+        -- Create a platform for the player to stand on
+        local bossPart = Instance.new("Part")
+        bossPart.Size = Vector3.new(11, 1, 11)  -- Adjusted size to be more like a platform
+        bossPart.Position = bossPosition + Vector3.new(0, -3, 0)  -- Positioned below the player
+        bossPart.Anchored = true
+        bossPart.CanCollide = true
+        bossPart.Transparency = 0.5  -- Semi-transparent
+        bossPart.Parent = game.Workspace
         
         -- Teleport the player
         player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
@@ -106,9 +106,9 @@ local function teleportToMechaBoss()
             Duration = 3,
         })
         
-        -- Remove the block after a short delay
-        task.delay(5, function()  -- Increased delay to 5 seconds
-            tempBlock:Destroy()
+        -- Remove the platform after a delay
+        task.delay(10, function()  -- Increased delay to 10 seconds
+            bossPart:Destroy()
         end)
     end
 end
