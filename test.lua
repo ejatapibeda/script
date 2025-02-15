@@ -88,20 +88,26 @@ local function spiritBossFarmLoop()
         while wait(0.5) do
             if _G.SpiritBossFarm then
                 print("[DEBUG] Spirit Boss Farm Loop - Checking door state...")
-                local isFighting = isBossFightActive()
-                print("[DEBUG] Boss fight active:", isFighting)
+                local isDoorOpen = isBossFightActive()
+                print("[DEBUG] Door open:", isDoorOpen)
                 print("[DEBUG] Current fighting state:", _G.IsFighting)
                 
-                if not isFighting and _G.IsFighting then
-                    print("[DEBUG] Door closed and was fighting - returning to lobby")
-                    _G.IsFighting = false
-                    wait(1)
-                    teleportToLobby()
-                elseif not _G.IsFighting then
-                    print("[DEBUG] Not fighting - teleporting to Spirit Boss")
-                    _G.IsFighting = true
-                    wait(1)
-                    teleportToSpiritBoss()
+                if not isDoorOpen then
+                    -- If door is closed and we're not in lobby, go to lobby
+                    if _G.IsFighting then
+                        print("[DEBUG] Door closed - returning to lobby")
+                        _G.IsFighting = false
+                        teleportToLobby()
+                    else
+                        print("[DEBUG] Waiting in lobby for door to open...")
+                    end
+                else
+                    -- Only teleport to boss if door is open and we're not already fighting
+                    if not _G.IsFighting then
+                        print("[DEBUG] Door open - teleporting to Spirit Boss")
+                        _G.IsFighting = true
+                        teleportToSpiritBoss()
+                    end
                 end
             end
         end
@@ -114,20 +120,26 @@ local function mechaBossFarmLoop()
         while wait(0.5) do
             if _G.MechaBossFarm then
                 print("[DEBUG] Mecha Boss Farm Loop - Checking door state...")
-                local isFighting = isBossFightActive()
-                print("[DEBUG] Boss fight active:", isFighting)
+                local isDoorOpen = isBossFightActive()
+                print("[DEBUG] Door open:", isDoorOpen)
                 print("[DEBUG] Current fighting state:", _G.IsFighting)
                 
-                if not isFighting and _G.IsFighting then
-                    print("[DEBUG] Door closed and was fighting - returning to lobby")
-                    _G.IsFighting = false
-                    wait(1)
-                    teleportToLobby()
-                elseif not _G.IsFighting then
-                    print("[DEBUG] Not fighting - teleporting to Mecha Boss")
-                    _G.IsFighting = true
-                    wait(1)
-                    teleportToMechaBoss()
+                if not isDoorOpen then
+                    -- If door is closed and we're not in lobby, go to lobby
+                    if _G.IsFighting then
+                        print("[DEBUG] Door closed - returning to lobby")
+                        _G.IsFighting = false
+                        teleportToLobby()
+                    else
+                        print("[DEBUG] Waiting in lobby for door to open...")
+                    end
+                else
+                    -- Only teleport to boss if door is open and we're not already fighting
+                    if not _G.IsFighting then
+                        print("[DEBUG] Door open - teleporting to Mecha Boss")
+                        _G.IsFighting = true
+                        teleportToMechaBoss()
+                    end
                 end
             end
         end
