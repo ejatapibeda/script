@@ -17,6 +17,39 @@ local BossTab = Window:Tab({ Title = "Boss Farm", Icon = "swords" })
 local SettingsTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 local MiscTab = Window:Tab({ Title = "Misc", Icon = "list" })
 
+-- Utility function for teleporting to lobby
+local function teleportToLobby()
+    local player = game.Players.LocalPlayer
+    local lobbyPosition = Vector3.new(467.59, 285.60, 844.08)
+    
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(lobbyPosition)
+        WindUI:Notify({
+            Title = "Lobby",
+            Content = "Teleported to Lobby",
+            Duration = 3,
+        })
+    end
+end
+
+-- Function to setup death detection
+local function setupDeathDetection()
+    local player = game.Players.LocalPlayer
+    
+    local function onCharacterAdded(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        humanoid.Died:Connect(function()
+            wait(1) -- Wait a short moment after death
+            teleportToLobby()
+        end)
+    end
+    
+    player.CharacterAdded:Connect(onCharacterAdded)
+    if player.Character then
+        onCharacterAdded(player.Character)
+    end
+end
+
 -- Boss Farm Section
 BossTab:Button({
     Title = "Spirit Boss Farm",
@@ -26,6 +59,9 @@ BossTab:Button({
         local bossPosition = Vector3.new(483.05, 333.55, 1222.51)
         
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Setup death detection before teleporting
+            setupDeathDetection()
+            
             player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
             WindUI:Notify({
                 Title = "Spirit Boss",
@@ -44,6 +80,9 @@ BossTab:Button({
         local bossPosition = Vector3.new(477.17, 277.60, 1199.48)
         
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Setup death detection before teleporting
+            setupDeathDetection()
+            
             player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
             WindUI:Notify({
                 Title = "Mecha Boss",
@@ -58,17 +97,7 @@ BossTab:Button({
     Title = "Return to Lobby",
     Desc = "Teleport back to lobby",
     Callback = function()
-        local player = game.Players.LocalPlayer
-        local lobbyPosition = Vector3.new(467.59, 285.60, 844.08)
-        
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(lobbyPosition)
-            WindUI:Notify({
-                Title = "Lobby",
-                Content = "Teleported to Lobby",
-                Duration = 3,
-            })
-        end
+        teleportToLobby()
     end
 })
 
