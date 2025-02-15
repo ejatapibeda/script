@@ -37,18 +37,52 @@ local function teleportToLobby()
     end
 end
 
--- Function to detect HEALTH text
+-- Function to detect HEALTH text in Roblox UI
 local function isHealthTextVisible()
     local player = game.Players.LocalPlayer
     if not player or not player.PlayerGui then return false end
-    
-    -- Search through all GUIs for text containing "HEALTH"
+
+    -- Check if a specific UI element from PlayerGui contains the word "HEALTH"
     for _, gui in pairs(player.PlayerGui:GetDescendants()) do
-        if gui:IsA("TextLabel") and string.find(string.upper(gui.Text), "HEALTH") then
-            return true
+        if gui:IsA("TextLabel") or gui:IsA("TextButton") then
+            local success, text = pcall(function() return gui.Text end)
+            if success and text and string.find(string.upper(text), "HEALTH") then
+                return true
+            end
         end
     end
-    
+
+    -- Also check for specific UI framework that might be used in the game
+    local function checkGuiContainer(container)
+        if not container then return false end
+        for _, gui in pairs(container:GetChildren()) do
+            if gui:IsA("Frame") or gui:IsA("ScreenGui") then
+                for _, element in pairs(gui:GetDescendants()) do
+                    if element:IsA("TextLabel") or element:IsA("TextButton") then
+                        local success, text = pcall(function() return element.Text end)
+                        if success and text and string.find(string.upper(text), "HEALTH") then
+                            return true
+                        end
+                    end
+                end
+            end
+        end
+        return false
+    end
+
+    -- Check in StarterGui
+    if checkGuiContainer(game:GetService("StarterGui")) then
+        return true
+    end
+
+    -- Check in CoreGui
+    local success, result = pcall(function()
+        return checkGuiContainer(game:GetService("CoreGui"))
+    end)
+    if success and result then
+        return true
+    end
+
     return false
 end
 
@@ -85,17 +119,17 @@ end
 -- Function to handle Spirit Boss farming loop
 local function spiritBossFarmLoop()
     spawn(function()
-        while wait(1) do
+        while wait(0.5) do -- Check more frequently
             if _G.SpiritBossFarm then
                 local isHealth = isHealthTextVisible()
                 if not isHealth and _G.IsFighting then
                     _G.IsFighting = false
+                    wait(1) -- Wait a bit before teleporting to lobby
                     teleportToLobby()
-                    wait(1)
                 elseif not _G.IsFighting then
                     _G.IsFighting = true
+                    wait(1) -- Wait a bit before teleporting to boss
                     teleportToSpiritBoss()
-                    wait(1)
                 end
             end
         end
@@ -105,17 +139,17 @@ end
 -- Function to handle Mecha Boss farming loop
 local function mechaBossFarmLoop()
     spawn(function()
-        while wait(1) do
+        while wait(0.5) do -- Check more frequently
             if _G.MechaBossFarm then
                 local isHealth = isHealthTextVisible()
                 if not isHealth and _G.IsFighting then
                     _G.IsFighting = false
+                    wait(1) -- Wait a bit before teleporting to lobby
                     teleportToLobby()
-                    wait(1)
                 elseif not _G.IsFighting then
                     _G.IsFighting = true
+                    wait(1) -- Wait a bit before teleporting to boss
                     teleportToMechaBoss()
-                    wait(1)
                 end
             end
         end
