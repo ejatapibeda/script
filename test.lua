@@ -138,22 +138,16 @@ end
 -- Function to handle Spirit Boss farming loop
 local function spiritBossFarmLoop()
     spawn(function()
-        while wait(0.5) do
+        while wait(0.5) do -- Check more frequently
             if _G.SpiritBossFarm then
-                print("[DEBUG] Spirit Boss Farm Loop - Checking health...")
                 local isHealth = isHealthTextVisible()
-                print("[DEBUG] Health visible:", isHealth)
-                print("[DEBUG] Current fighting state:", _G.IsFighting)
-                
                 if not isHealth and _G.IsFighting then
-                    print("[DEBUG] No health found and was fighting - returning to lobby")
                     _G.IsFighting = false
-                    wait(1)
+                    wait(1) -- Wait a bit before teleporting to lobby
                     teleportToLobby()
                 elseif not _G.IsFighting then
-                    print("[DEBUG] Not fighting - teleporting to Spirit Boss")
                     _G.IsFighting = true
-                    wait(1)
+                    wait(1) -- Wait a bit before teleporting to boss
                     teleportToSpiritBoss()
                 end
             end
@@ -164,22 +158,16 @@ end
 -- Function to handle Mecha Boss farming loop
 local function mechaBossFarmLoop()
     spawn(function()
-        while wait(0.5) do
+        while wait(0.5) do -- Check more frequently
             if _G.MechaBossFarm then
-                print("[DEBUG] Mecha Boss Farm Loop - Checking health...")
                 local isHealth = isHealthTextVisible()
-                print("[DEBUG] Health visible:", isHealth)
-                print("[DEBUG] Current fighting state:", _G.IsFighting)
-                
                 if not isHealth and _G.IsFighting then
-                    print("[DEBUG] No health found and was fighting - returning to lobby")
                     _G.IsFighting = false
-                    wait(1)
+                    wait(1) -- Wait a bit before teleporting to lobby
                     teleportToLobby()
                 elseif not _G.IsFighting then
-                    print("[DEBUG] Not fighting - teleporting to Mecha Boss")
                     _G.IsFighting = true
-                    wait(1)
+                    wait(1) -- Wait a bit before teleporting to boss
                     teleportToMechaBoss()
                 end
             end
