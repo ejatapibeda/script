@@ -37,17 +37,32 @@ local function teleportToLobby()
     end
 end
 
--- Function to check if boss fight is active
-local function isBossFightActive()
+-- Function to check if Spirit Boss fight is active
+local function isSpiritBossFightActive()
     local success, isDoorOpen = pcall(function()
         return workspace.Lobby.Door:FindFirstChild("OpenDoor") ~= nil
     end)
     
     if success then
-        print("[DEBUG] Door state check - OpenDoor exists:", isDoorOpen)
+        print("[DEBUG] Spirit Boss Door state - OpenDoor exists:", isDoorOpen)
         return isDoorOpen
     else
-        print("[DEBUG] Error checking door state")
+        print("[DEBUG] Error checking Spirit Boss door state")
+        return false
+    end
+end
+
+-- Function to check if Mecha Boss fight is active
+local function isMechaBossFightActive()
+    local success, isActive = pcall(function()
+        return not workspace.Lobby.ReadyAreass.PhysicalLobbyDisplay.SurfaceGui.Enabled
+    end)
+    
+    if success then
+        print("[DEBUG] Mecha Boss state - Active:", isActive)
+        return isActive
+    else
+        print("[DEBUG] Error checking Mecha Boss state")
         return false
     end
 end
@@ -85,29 +100,20 @@ end
 -- Function to handle Spirit Boss farming loop
 local function spiritBossFarmLoop()
     spawn(function()
-        while wait(0.5) do
+        while wait(1) do
             if _G.SpiritBossFarm then
-                print("[DEBUG] Spirit Boss Farm Loop - Checking door state...")
-                local isDoorOpen = isBossFightActive()
-                print("[DEBUG] Door open:", isDoorOpen)
-                print("[DEBUG] Current fighting state:", _G.IsFighting)
+                local isDoorOpen = isSpiritBossFightActive()
+                print("[DEBUG] Spirit Boss Door state:", isDoorOpen and "Open" or "Closed")
                 
-                if not isDoorOpen then
-                    -- If door is closed and we're not in lobby, go to lobby
-                    if _G.IsFighting then
-                        print("[DEBUG] Door closed - returning to lobby")
-                        _G.IsFighting = false
-                        teleportToLobby()
-                    else
-                        print("[DEBUG] Waiting in lobby for door to open...")
-                    end
-                else
-                    -- Only teleport to boss if door is open and we're not already fighting
-                    if not _G.IsFighting then
-                        print("[DEBUG] Door open - teleporting to Spirit Boss")
-                        _G.IsFighting = true
-                        teleportToSpiritBoss()
-                    end
+                if isDoorOpen and not _G.IsFighting then
+                    print("[DEBUG] Door open - Going to Spirit Boss")
+                    _G.IsFighting = true
+                    teleportToSpiritBoss()
+                elseif not isDoorOpen and _G.IsFighting then
+                    print("[DEBUG] Door closed - Going to lobby")
+                    _G.IsFighting = false
+                    teleportToLobby()
+                    wait(3)
                 end
             end
         end
@@ -117,29 +123,20 @@ end
 -- Function to handle Mecha Boss farming loop
 local function mechaBossFarmLoop()
     spawn(function()
-        while wait(0.5) do
+        while wait(1) do
             if _G.MechaBossFarm then
-                print("[DEBUG] Mecha Boss Farm Loop - Checking door state...")
-                local isDoorOpen = isBossFightActive()
-                print("[DEBUG] Door open:", isDoorOpen)
-                print("[DEBUG] Current fighting state:", _G.IsFighting)
+                local isBossActive = isMechaBossFightActive()
+                print("[DEBUG] Mecha Boss state:", isBossActive and "Active" or "Inactive")
                 
-                if not isDoorOpen then
-                    -- If door is closed and we're not in lobby, go to lobby
-                    if _G.IsFighting then
-                        print("[DEBUG] Door closed - returning to lobby")
-                        _G.IsFighting = false
-                        teleportToLobby()
-                    else
-                        print("[DEBUG] Waiting in lobby for door to open...")
-                    end
-                else
-                    -- Only teleport to boss if door is open and we're not already fighting
-                    if not _G.IsFighting then
-                        print("[DEBUG] Door open - teleporting to Mecha Boss")
-                        _G.IsFighting = true
-                        teleportToMechaBoss()
-                    end
+                if isBossActive and not _G.IsFighting then
+                    print("[DEBUG] Mecha Boss active - Going to boss")
+                    _G.IsFighting = true
+                    teleportToMechaBoss()
+                elseif not isBossActive and _G.IsFighting then
+                    print("[DEBUG] Mecha Boss inactive - Going to lobby")
+                    _G.IsFighting = false
+                    teleportToLobby()
+                    wait(3)
                 end
             end
         end
