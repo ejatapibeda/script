@@ -88,13 +88,52 @@ local function teleportToMechaBoss()
     local bossPosition = Vector3.new(477.17, 277.60, 1199.48)
     
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        -- Create a temporary block to stand on
+        local tempBlock = Instance.new("Part")
+        tempBlock.Size = Vector3.new(10, 1, 10)  -- Adjust size as needed
+        tempBlock.Position = bossPosition + Vector3.new(0, -3, 0)  -- Place it slightly below the teleport point
+        tempBlock.Anchored = true
+        tempBlock.CanCollide = true
+        tempBlock.Transparency = 0.5  -- Make it semi-transparent
+        tempBlock.Parent = workspace
+        
+        -- Teleport the player
         player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
+        
         WindUI:Notify({
             Title = "Mecha Boss",
             Content = "Teleported to Mecha Boss",
             Duration = 3,
         })
+        
+        -- Remove the block after a short delay
+        task.delay(2, function()
+            tempBlock:Destroy()
+        end)
     end
+end
+
+-- Function to handle Mecha Boss farming loop
+local function mechaBossFarmLoop()
+    spawn(function()
+        while wait(1) do
+            if _G.MechaBossFarm then
+                local isBossActive = isMechaBossFightActive()
+                print("[DEBUG] Mecha Boss state:", isBossActive and "Active" or "Inactive")
+                
+                if isBossActive and not _G.IsFighting then
+                    print("[DEBUG] Mecha Boss active - Going to boss")
+                    _G.IsFighting = true
+                    teleportToMechaBoss()
+                elseif not isBossActive and _G.IsFighting then
+                    print("[DEBUG] Mecha Boss inactive - Going to lobby")
+                    _G.IsFighting = false
+                    teleportToLobby()
+                    wait(3)
+                end
+            end
+        end
+    end)
 end
 
 -- Function to handle Spirit Boss farming loop
@@ -120,28 +159,6 @@ local function spiritBossFarmLoop()
     end)
 end
 
--- Function to handle Mecha Boss farming loop
-local function mechaBossFarmLoop()
-    spawn(function()
-        while wait(1) do
-            if _G.MechaBossFarm then
-                local isBossActive = isMechaBossFightActive()
-                print("[DEBUG] Mecha Boss state:", isBossActive and "Active" or "Inactive")
-                
-                if isBossActive and not _G.IsFighting then
-                    print("[DEBUG] Mecha Boss active - Going to boss")
-                    _G.IsFighting = true
-                    teleportToMechaBoss()
-                elseif not isBossActive and _G.IsFighting then
-                    print("[DEBUG] Mecha Boss inactive - Going to lobby")
-                    _G.IsFighting = false
-                    teleportToLobby()
-                    wait(3)
-                end
-            end
-        end
-    end)
-end
 
 -- Boss Farm Section
 BossTab:Toggle({
