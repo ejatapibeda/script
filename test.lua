@@ -17,6 +17,11 @@ local BossTab = Window:Tab({ Title = "Boss Farm", Icon = "swords" })
 local SettingsTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 local MiscTab = Window:Tab({ Title = "Misc", Icon = "list" })
 
+-- Global variables for boss farming
+_G.SpiritBossFarm = false
+_G.MechaBossFarm = false
+_G.IsFighting = false
+
 -- Utility function for teleporting to lobby
 local function teleportToLobby()
     local player = game.Players.LocalPlayer
@@ -32,63 +37,128 @@ local function teleportToLobby()
     end
 end
 
--- Function to setup death detection
-local function setupDeathDetection()
+-- Function to detect HEALTH text
+local function isHealthTextVisible()
     local player = game.Players.LocalPlayer
+    if not player or not player.PlayerGui then return false end
     
-    local function onCharacterAdded(character)
-        local humanoid = character:WaitForChild("Humanoid")
-        humanoid.Died:Connect(function()
-            wait(1) -- Wait a short moment after death
-            teleportToLobby()
-        end)
+    -- Search through all GUIs for text containing "HEALTH"
+    for _, gui in pairs(player.PlayerGui:GetDescendants()) do
+        if gui:IsA("TextLabel") and string.find(string.upper(gui.Text), "HEALTH") then
+            return true
+        end
     end
     
-    player.CharacterAdded:Connect(onCharacterAdded)
-    if player.Character then
-        onCharacterAdded(player.Character)
+    return false
+end
+
+-- Function to teleport to Spirit Boss
+local function teleportToSpiritBoss()
+    local player = game.Players.LocalPlayer
+    local bossPosition = Vector3.new(483.05, 333.55, 1222.51)
+    
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
+        WindUI:Notify({
+            Title = "Spirit Boss",
+            Content = "Teleported to Spirit Boss",
+            Duration = 3,
+        })
     end
 end
 
+-- Function to teleport to Mecha Boss
+local function teleportToMechaBoss()
+    local player = game.Players.LocalPlayer
+    local bossPosition = Vector3.new(477.17, 277.60, 1199.48)
+    
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
+        WindUI:Notify({
+            Title = "Mecha Boss",
+            Content = "Teleported to Mecha Boss",
+            Duration = 3,
+        })
+    end
+end
+
+-- Function to handle Spirit Boss farming loop
+local function spiritBossFarmLoop()
+    spawn(function()
+        while wait(1) do
+            if _G.SpiritBossFarm then
+                local isHealth = isHealthTextVisible()
+                if not isHealth and _G.IsFighting then
+                    _G.IsFighting = false
+                    teleportToLobby()
+                    wait(1)
+                elseif not _G.IsFighting then
+                    _G.IsFighting = true
+                    teleportToSpiritBoss()
+                    wait(1)
+                end
+            end
+        end
+    end)
+end
+
+-- Function to handle Mecha Boss farming loop
+local function mechaBossFarmLoop()
+    spawn(function()
+        while wait(1) do
+            if _G.MechaBossFarm then
+                local isHealth = isHealthTextVisible()
+                if not isHealth and _G.IsFighting then
+                    _G.IsFighting = false
+                    teleportToLobby()
+                    wait(1)
+                elseif not _G.IsFighting then
+                    _G.IsFighting = true
+                    teleportToMechaBoss()
+                    wait(1)
+                end
+            end
+        end
+    end)
+end
+
 -- Boss Farm Section
-BossTab:Button({
+BossTab:Toggle({
     Title = "Spirit Boss Farm",
-    Desc = "Farm Spirit Boss",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local bossPosition = Vector3.new(483.05, 333.55, 1222.51)
-        
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Setup death detection before teleporting
-            setupDeathDetection()
-            
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
+    Default = false,
+    Callback = function(state)
+        _G.SpiritBossFarm = state
+        if state then
+            _G.MechaBossFarm = false -- Disable other boss farm if active
+            spiritBossFarmLoop()
             WindUI:Notify({
-                Title = "Spirit Boss",
-                Content = "Teleported to Spirit Boss",
+                Title = "Spirit Boss Farm",
+                Content = "Auto farming enabled",
                 Duration = 3,
             })
+        else
+            _G.IsFighting = false
+            teleportToLobby()
         end
     end
 })
 
-BossTab:Button({
+BossTab:Toggle({
     Title = "Mecha Boss Farm",
-    Desc = "Farm Mecha Boss",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local bossPosition = Vector3.new(477.17, 277.60, 1199.48)
-        
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Setup death detection before teleporting
-            setupDeathDetection()
-            
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPosition)
+    Default = false,
+    Callback = function(state)
+        _G.MechaBossFarm = state
+        if state then
+            _G.SpiritBossFarm = false -- Disable other boss farm if active
+            mechaBossFarmLoop()
             WindUI:Notify({
-                Title = "Mecha Boss",
-                Content = "Teleported to Mecha Boss",
+                Title = "Mecha Boss Farm",
+                Content = "Auto farming enabled",
                 Duration = 3,
             })
+        else
+            _G.IsFighting = false
+            teleportToLobby()
         end
     end
 })
@@ -97,6 +167,9 @@ BossTab:Button({
     Title = "Return to Lobby",
     Desc = "Teleport back to lobby",
     Callback = function()
+        _G.SpiritBossFarm = false
+        _G.MechaBossFarm = false
+        _G.IsFighting = false
         teleportToLobby()
     end
 })
