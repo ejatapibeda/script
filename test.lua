@@ -6,12 +6,6 @@ local Window = WindUI:CreateWindow({
     Author = "Calixto",
     Folder = "CalixtoHub",
     Size = UDim2.fromOffset(580, 460),
-    KeySystem = {
-        Key = { "12345" },
-        Note = "The key is '12345'",
-        URL = "",
-        SaveKey = true,
-    },
     Transparent = true,
     Theme = "Dark",
     SideBarWidth = 200,
@@ -178,16 +172,81 @@ local function setupShiftlock()
     
     ShiftlockStarterGui.Name = "Shiftlock (StarterGui)"
     ShiftlockStarterGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ShiftlockStarterGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
     ImageButton.Parent = ShiftlockStarterGui
-    ImageButton.BackgroundTransparency = 1
-    ImageButton.Position = UDim2.new(0.92, 0, 0.55, 0)
-    ImageButton.Size = UDim2.new(0.034, 0, 0.036, 0)
+    ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ImageButton.BackgroundTransparency = 1.000
+    ImageButton.Position = UDim2.new(0.921914339, 0, 0.552375436, 0)
+    ImageButton.Size = UDim2.new(0.0336147112, 0, 0.0361305636, 0)
+    ImageButton.SizeConstraint = Enum.SizeConstraint.RelativeXX
     ImageButton.Image = "http://www.roblox.com/asset/?id=182223762"
     
     local function TLQOYN_fake_script()
         local script = Instance.new('LocalScript', ImageButton)
-        -- Shiftlock implementation remains the same as original
+        
+        local MobileCameraFramework = {}
+        local players = game:GetService("Players")
+        local runservice = game:GetService("RunService")
+        local CAS = game:GetService("ContextActionService")
+        local player = players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local root = character:WaitForChild("HumanoidRootPart")
+        local humanoid = character.Humanoid
+        local camera = workspace.CurrentCamera
+        local button = script.Parent
+        
+        -- Visibility
+        local uis = game:GetService("UserInputService")
+        local ismobile = uis.TouchEnabled
+        button.Visible = not ismobile
+        
+        local MAX_LENGTH = 900000
+        local active = false
+        local ENABLED_OFFSET = CFrame.new(1.7, 0, 0)
+        local DISABLED_OFFSET = CFrame.new(-1.7, 0, 0)
+        
+        local function UpdateAutoRotate(BOOL)
+            humanoid.AutoRotate = BOOL
+        end
+        
+        local function GetUpdatedCameraCFrame(ROOT, CAMERA)
+            return CFrame.new(root.Position, Vector3.new(CAMERA.CFrame.LookVector.X * MAX_LENGTH, root.Position.Y, CAMERA.CFrame.LookVector.Z * MAX_LENGTH))
+        end
+        
+        local function EnableShiftlock()
+            UpdateAutoRotate(false)
+            root.CFrame = GetUpdatedCameraCFrame(root, camera)
+            camera.CFrame = camera.CFrame * ENABLED_OFFSET
+        end
+        
+        local function DisableShiftlock()
+            UpdateAutoRotate(true)
+            camera.CFrame = camera.CFrame * DISABLED_OFFSET
+            pcall(function()
+                active:Disconnect()
+                active = nil
+            end)
+        end
+        
+        active = false
+        
+        function ShiftLock()
+            if not active then
+                active = runservice.RenderStepped:Connect(function()
+                    EnableShiftlock()
+                end)
+            else
+                DisableShiftlock()
+            end
+        end
+        
+        local ShiftLockButton = CAS:BindAction("ShiftLOCK", ShiftLock, false, Enum.KeyCode.LeftShift)
+        CAS:SetPosition("ShiftLOCK", UDim2.new(0.8, 0, 0.8, 0))
+        
+        button.MouseButton1Click:Connect(ShiftLock)
+        
+        return MobileCameraFramework
     end
     
     coroutine.wrap(TLQOYN_fake_script)()
