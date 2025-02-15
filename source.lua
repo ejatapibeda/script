@@ -1,6 +1,3 @@
--- Deathball Script by Chronix
--- Update in 2025.2.9
-
 if game.GameId ~= 5166944221 then
     warn("⛔ Current Game ID " .. game.GameId .. ", Not in Deathball game, script loading terminated.")
     return
@@ -9,7 +6,7 @@ if _G.DeathBallScriptLoaded then
     warn("⛔ Deathball Script Already loaded! Please do not repeat the execution.")
     return
 end
- 
+
 _G.DeathBallScriptLoaded = true
 
 print("Deathball Script Loading...")
@@ -23,7 +20,7 @@ print("✅ Service - Workspace Get Done.")
 local UserInputService = game:GetService("UserInputService")
 print("✅ Service - UserInputService Get Done.")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-print("✅ Service - VirtualInputMnager Get Done.")
+print("✅ Service - VirtualInputManager Get Done.")
 local StarterGui = game:GetService("StarterGui")
 print("✅ Service - StarterGui Get Done.")
 local TweenService = game:GetService("TweenService")
@@ -36,7 +33,7 @@ NotifGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local notifications = {}
 
--- Load achievement sound
+-- Load achievement sound effect
 local achievementSound = Instance.new("Sound")
 achievementSound.SoundId = "rbxassetid://4590662766" -- Replace with your audio ID
 achievementSound.Volume = 0.5 -- Volume level
@@ -57,9 +54,113 @@ local function CreateNotification(title, text, duration, isAchievement)
     notificationFrame.Size = UDim2.new(0.2, 0, 0.1, 0)
     notificationFrame.Position = UDim2.new(1, 0, 0.1 + #notifications * 0.11, 0)
     notificationFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Background color
-    notificationFrame.BackgroundTransparency = 0.7 -- Reduced background transparency
+    notificationFrame.BackgroundTransparency = 0.7 -- Reduce background transparency
     notificationFrame.BorderSizePixel = 0
     notificationFrame.ZIndex = 999
+    notificationFrame.Parent = NotifGui
+
+    local uiCorner = Instance.new("UICorner", notificationFrame)
+    uiCorner.CornerRadius = UDim.new(0, 8)
+
+    -- Title
+    local titleLabel = Instance.new("TextLabel", notificationFrame)
+    titleLabel.Size = UDim2.new(0.95, 0, 0.3, 0)
+    titleLabel.Position = UDim2.new(0.025, 0, 0.05, 0)
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Title text color
+    titleLabel.TextSize = 18
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Divider line
+    local divider = Instance.new("Frame", notificationFrame)
+    divider.Size = UDim2.new(0.95, 0, 0, 1)
+    divider.Position = UDim2.new(0.025, 0, 0.35, 0)
+    divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    divider.BackgroundTransparency = 0.8
+    divider.BorderSizePixel = 0
+
+    -- Content
+    local textLabel = Instance.new("TextLabel", notificationFrame)
+    textLabel.Size = UDim2.new(0.95, 0, 0.6, 0)
+    textLabel.Position = UDim2.new(0.025, 0, 0.3, 0)
+    textLabel.Text = text
+    textLabel.TextColor3 = Color3.fromRGB(220, 220, 220) -- Content text color
+    textLabel.TextSize = 16
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextWrapped = true
+    textLabel.Font = Enum.Font.GothamSemibold
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    table.insert(notifications, notificationFrame)
+
+    -- If it's an achievement notification, play sound effect
+    if isAchievement then
+        achievementSound:Play()
+    end
+
+    -- Slide-in animation
+    local tweenIn = TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+        Position = UDim2.new(0.8, 0, notificationFrame.Position.Y.Scale, 0)
+    })
+    tweenIn:Play()
+
+    -- Handle notification lifecycle in a separate coroutine
+    coroutine.wrap(function()
+        wait(duration)
+
+        -- Slide-out animation
+        local tweenOut = TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+            Position = UDim2.new(1, 0, notificationFrame.Position.Y.Scale, 0)
+        })
+        tweenOut:Play()
+        tweenOut.Completed:Wait()
+
+        -- Remove element and update queue
+        local index = table.find(notifications, notificationFrame)
+        if index then
+            table.remove(notifications, index)
+            notificationFrame:Destroy()
+            UpdatePositions()
+        end
+    end)()
+end
+print("✅ NotifGui Create.")
+
+-- Helper function: Create and configure a TextLabel
+local function CreateTextLabel(parent, text, textColor3, position, textSize)
+    local textLabel = Instance.new("TextLabel", parent)
+    textLabel.Text = text
+    textLabel.TextColor3 = textColor3 or Color3.new(1, 1, 1) -- Default to white
+    textLabel.Position = position or UDim2.new(0.5, 0, 0.5, 0) -- Default to center
+    textLabel.TextSize = textSize or 14 -- Default font size
+    textLabel.BackgroundTransparency = 1 -- Default background transparency
+    print("✅ UI - " .. text .. " Create.")
+    return textLabel
+end
+
+-- Create ScreenGui and set it as a child of LocalPlayer.PlayerGui
+local Gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+print("✅ ScreenGui Create.")
+
+-- Create TextLabel instances using the helper function
+local Text1 = CreateTextLabel(Gui, "Game not started", Color3.fromRGB(230, 230, 250), UDim2.new(0.529, -40, 0.1, 0), 25)
+local Text2 = CreateTextLabel(Gui, "", Color3.fromRGB(166, 166, 166), UDim2.new(0.529, -40, 0.14, 0), 15)
+local Text3 = CreateTextLabel(Gui, "Auto Parry (OFF)", Color3.fromRGB(230, 230, 250), UDim2.new(0.949, -40, -0.04, 0), 20)
+
+CreateNotification("Notice", "Deathball assistant has started", 5, true)
+wait(0.5)
+CreateNotification("Notice", "Press K to activate Auto Parry", 5.5, false)
+wait(0.5)
+CreateNotification("Notice", "Press Delete to unload script", 6, false)
+
+print("⚠️ Service VirtualInputManager Loading problem occurred!")
+print("✅ Module NotificationSystem Load.")
+print("")
+print("Deathball Script Load!")
+print("Usage Reminder: Press K to toggle Auto Parry, press Delete to unload script")
+
     notificationFrame.Parent = NotifGui
 
     local uiCorner = Instance.new("UICorner", notificationFrame)
