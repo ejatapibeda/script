@@ -85,7 +85,7 @@ end
 -- Function to teleport to Mecha Boss
 local function teleportToMechaBoss()
     local player = game.Players.LocalPlayer
-    local bossPosition = Vector3.new(477.17, 277.60, 1199.48)
+    local bossPosition = Vector3.new(477.17, 290.60, 1199.48)  -- Increased Y coordinate
     
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         -- Create a temporary block to stand on
@@ -107,7 +107,7 @@ local function teleportToMechaBoss()
         })
         
         -- Remove the block after a short delay
-        task.delay(2, function()
+        task.delay(5, function()  -- Increased delay to 5 seconds
             tempBlock:Destroy()
         end)
     end
